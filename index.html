@@ -201,30 +201,13 @@
             <p class="subtitle">Radio Nostalgie Belgique</p>
         </div>
 
-        <div class="info-box">
-            <p>📋 Collez ci-dessous <strong>toutes les informations de l'auditeur</strong> (questionnaire, préférences musicales, histoire personnelle, etc.). Le système analysera automatiquement les données pour générer une playlist unique de 25 titres.</p>
-        </div>
-
         <form id="playlistForm">
             <div class="form-group">
-                <label for="infos">Informations de l'auditeur</label>
+                <label for="infos">Collez les réponses</label>
                 <textarea
                     id="infos"
-                    name="Informations auditeur"
-                    placeholder="Collez ici toutes les informations de l'auditeur...
-
-Exemple :
-Nom : Marie Dupont
-Localité : 1000 Bruxelles, Belgique
-Date de naissance : 15 mars 1975
-Téléphone : 0470123456
-Email : marie@example.com
-
-Artistes préférés : Queen, ABBA, Jean-Jacques Goldman
-Premier souvenir musical : Dancing Queen de ABBA
-Groupe de l'adolescence : Nirvana
-Passions : lecture, voyages, cuisine italienne
-..."
+                    name="Collez les réponses"
+                    placeholder="Collez ici les réponses du questionnaire..."
                     required
                 ></textarea>
             </div>
@@ -255,7 +238,7 @@ Passions : lecture, voyages, cuisine italienne
             const infos = document.getElementById('infos').value.trim();
 
             if (!infos) {
-                showStatus('Veuillez coller les informations de l\'auditeur', 'error');
+                showStatus('Veuillez coller les réponses', 'error');
                 return;
             }
 
@@ -271,7 +254,7 @@ Passions : lecture, voyages, cuisine italienne
                         'Content-Type': 'application/json',
                     },
                     body: JSON.stringify({
-                        'Informations auditeur': infos
+                        'Collez les réponses': infos
                     })
                 });
 
