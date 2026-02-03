@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>🎵 Générateur de Playlist</title>
+    <title>🎵 Générateur de Playlist - Radio Nostalgie</title>
     <style>
         * {
             margin: 0;
@@ -185,6 +185,42 @@
             line-height: 1.6;
         }
 
+        .date-picker-group {
+            margin-bottom: 25px;
+        }
+
+        .date-input-wrapper {
+            position: relative;
+        }
+
+        .date-input {
+            width: 100%;
+            padding: 15px 20px;
+            border: 2px solid #e0e0e0;
+            border-radius: 12px;
+            font-size: 16px;
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            transition: border-color 0.3s, box-shadow 0.3s;
+            cursor: pointer;
+        }
+
+        .date-input:focus {
+            outline: none;
+            border-color: #e94560;
+            box-shadow: 0 0 0 4px rgba(233, 69, 96, 0.1);
+        }
+
+        .date-hint {
+            margin-top: 8px;
+            font-size: 13px;
+            color: #888;
+        }
+
+        .date-hint span {
+            color: #e94560;
+            font-weight: 600;
+        }
+
         .footer {
             text-align: center;
             margin-top: 30px;
@@ -198,15 +234,47 @@
         <div class="header">
             <div class="logo">🎵</div>
             <h1>Générateur de Playlist Personnalisée</h1>
+            <p class="subtitle">Radio Nostalgie Belgique</p>
+        </div>
+
+        <div class="info-box">
+            <p>📋 Collez ci-dessous <strong>toutes les informations de l'auditeur</strong> (questionnaire, préférences musicales, histoire personnelle, etc.). Le système analysera automatiquement les données pour générer une playlist unique de 25 titres.</p>
         </div>
 
         <form id="playlistForm">
+            <div class="form-group date-picker-group">
+                <label for="datePassage">Date de passage antenne</label>
+                <div class="date-input-wrapper">
+                    <input
+                        type="date"
+                        id="datePassage"
+                        name="Date passage antenne"
+                        class="date-input"
+                        required
+                    >
+                </div>
+                <p class="date-hint">Uniquement du <span>lundi au vendredi</span></p>
+            </div>
+
             <div class="form-group">
-                <label for="infos">Collez les réponses</label>
+                <label for="infos">Informations de l'auditeur</label>
                 <textarea
                     id="infos"
-                    name="Collez les réponses"
-                    placeholder="Collez ici les réponses du questionnaire..."
+                    name="Informations auditeur"
+                    placeholder="Collez ici toutes les informations de l'auditeur...
+
+Exemple :
+Nom : Marie Dupont
+Localité : 1000 Bruxelles, Belgique
+Date de naissance : 15 mars 1975
+Téléphone : 0470123456
+Email : marie@example.com
+
+Artistes préférés : Queen, ABBA, Jean-Jacques Goldman
+Premier souvenir musical : Dancing Queen de ABBA
+Groupe de l'adolescence : Nirvana
+Passions : lecture, voyages, cuisine italienne
+..."
                     required
                 ></textarea>
             </div>
@@ -219,29 +287,88 @@
 
         <div class="status" id="status"></div>
 
+        <div class="footer">
+            <p>💝 Créé avec amour pour Radio Nostalgie</p>
+        </div>
     </div>
 
     <script>
-        const WEBHOOK_URL = 'https://n8n.srv767464.hstgr.cloud/webhook/playlist-generator';
+        const WEBHOOK_URL = 'https://n8n.srv767464.hstgr.cloud/form/playlist-generator';
 
         const form = document.getElementById('playlistForm');
         const submitBtn = document.getElementById('submitBtn');
         const statusDiv = document.getElementById('status');
+        const dateInput = document.getElementById('datePassage');
+
+        // Initialiser le calendrier
+        function initDatePicker() {
+            const today = new Date();
+            const minDate = new Date(today);
+
+            // Trouver le prochain jour ouvrable (lundi-vendredi)
+            while (minDate.getDay() === 0 || minDate.getDay() === 6) {
+                minDate.setDate(minDate.getDate() + 1);
+            }
+
+            // Date min = prochain jour ouvrable
+            dateInput.min = minDate.toISOString().split('T')[0];
+
+            // Date max = 3 mois dans le futur
+            const maxDate = new Date(today);
+            maxDate.setMonth(maxDate.getMonth() + 3);
+            dateInput.max = maxDate.toISOString().split('T')[0];
+
+            // Valeur par defaut = prochain jour ouvrable
+            dateInput.value = minDate.toISOString().split('T')[0];
+        }
+
+        // Verifier que la date est un jour ouvrable (lundi-vendredi)
+        function isWeekday(dateString) {
+            const date = new Date(dateString);
+            const day = date.getDay();
+            return day >= 1 && day <= 5; // 1=lundi, 5=vendredi
+        }
+
+        // Validation lors du changement de date
+        dateInput.addEventListener('change', function() {
+            if (!isWeekday(this.value)) {
+                showStatus('La date de passage doit etre du lundi au vendredi.', 'error');
+                // Trouver le prochain jour ouvrable
+                const selected = new Date(this.value);
+                while (selected.getDay() === 0 || selected.getDay() === 6) {
+                    selected.setDate(selected.getDate() + 1);
+                }
+                this.value = selected.toISOString().split('T')[0];
+            } else {
+                statusDiv.className = 'status';
+            }
+        });
 
         form.addEventListener('submit', async (e) => {
             e.preventDefault();
 
             const infos = document.getElementById('infos').value.trim();
+            const datePassage = dateInput.value;
 
             if (!infos) {
-                showStatus('Veuillez coller les réponses', 'error');
+                showStatus('Veuillez coller les informations de l\'auditeur', 'error');
+                return;
+            }
+
+            if (!datePassage) {
+                showStatus('Veuillez selectionner une date de passage antenne', 'error');
+                return;
+            }
+
+            if (!isWeekday(datePassage)) {
+                showStatus('La date de passage doit etre du lundi au vendredi.', 'error');
                 return;
             }
 
             // Mode loading
             submitBtn.classList.add('loading');
             submitBtn.disabled = true;
-            showStatus('⏳ Génération en cours... Cela peut prendre 1-2 minutes.', 'processing');
+            showStatus('Envoi en cours... Cela peut prendre 1-2 minutes.', 'processing');
 
             try {
                 const response = await fetch(WEBHOOK_URL, {
@@ -250,18 +377,20 @@
                         'Content-Type': 'application/json',
                     },
                     body: JSON.stringify({
-                        'Collez les réponses': infos
+                        'Collez les reponses': infos,
+                        'Date passage antenne': datePassage
                     })
                 });
 
                 if (response.ok) {
-                    showStatus('✅ Playlist générée avec succès ! Vérifiez votre email.', 'success');
+                    showStatus('Playlist generee avec succes ! Verifiez votre email.', 'success');
                     form.reset();
+                    initDatePicker(); // Reinitialiser la date
                 } else {
                     throw new Error('Erreur serveur');
                 }
             } catch (error) {
-                showStatus('❌ Erreur lors de la génération. Réessayez.', 'error');
+                showStatus('Erreur lors de la generation. Reessayez.', 'error');
                 console.error(error);
             } finally {
                 submitBtn.classList.remove('loading');
@@ -273,6 +402,9 @@
             statusDiv.textContent = message;
             statusDiv.className = 'status ' + type;
         }
+
+        // Initialiser au chargement
+        initDatePicker();
     </script>
 </body>
 </html>
