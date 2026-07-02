@@ -253,7 +253,7 @@
                         required
                     >
                 </div>
-                <p class="date-hint">Uniquement du <span>lundi au vendredi</span></p>
+                <p class="date-hint">Uniquement le <span>samedi</span></p>
             </div>
 
             <div class="form-group">
@@ -293,7 +293,12 @@ Passions : lecture, voyages, cuisine italienne
     </div>
 
     <script>
-        // Edition ETE : pointe vers le workflow n8n "Génération Playlist Personnalisée — ÉTÉ"
+        // ============================================================
+        // ÉDITION ÉTÉ — passages antenne uniquement le samedi.
+        // Pour rebasculer en septembre sur la logique jour-ouvrable
+        // (lundi-vendredi), voir l'historique git du repo.
+        // ============================================================
+
         const WEBHOOK_URL = 'https://n8n.srv767464.hstgr.cloud/webhook/playlist-generator-ete';
 
         const form = document.getElementById('playlistForm');
@@ -301,46 +306,52 @@ Passions : lecture, voyages, cuisine italienne
         const statusDiv = document.getElementById('status');
         const dateInput = document.getElementById('datePassage');
 
-        // Initialiser le calendrier
+        // Parse ISO YYYY-MM-DD en date LOCALE (évite le décalage UTC de new Date("2026-07-04")).
+        function parseLocalDate(s) {
+            const [y, m, d] = s.split('-').map(Number);
+            return new Date(y, m - 1, d);
+        }
+
+        function toIsoLocal(d) {
+            const y = d.getFullYear();
+            const m = String(d.getMonth() + 1).padStart(2, '0');
+            const day = String(d.getDate()).padStart(2, '0');
+            return y + '-' + m + '-' + day;
+        }
+
+        function nextSaturday(from) {
+            const d = new Date(from.getFullYear(), from.getMonth(), from.getDate());
+            const offset = (6 - d.getDay() + 7) % 7;
+            d.setDate(d.getDate() + offset);
+            return d;
+        }
+
+        function isSaturday(dateString) {
+            return parseLocalDate(dateString).getDay() === 6;
+        }
+
+        let lastValidDate = '';
+
         function initDatePicker() {
             const today = new Date();
-            const minDate = new Date(today);
+            const minDate = nextSaturday(today);
+            dateInput.min = toIsoLocal(minDate);
 
-            // Trouver le prochain jour ouvrable (lundi-vendredi)
-            while (minDate.getDay() === 0 || minDate.getDay() === 6) {
-                minDate.setDate(minDate.getDate() + 1);
-            }
+            const maxDate = new Date(today.getFullYear(), today.getMonth() + 3, today.getDate());
+            dateInput.max = toIsoLocal(maxDate);
 
-            // Date min = prochain jour ouvrable
-            dateInput.min = minDate.toISOString().split('T')[0];
-
-            // Date max = 3 mois dans le futur
-            const maxDate = new Date(today);
-            maxDate.setMonth(maxDate.getMonth() + 3);
-            dateInput.max = maxDate.toISOString().split('T')[0];
-
-            // Valeur par defaut = prochain jour ouvrable
-            dateInput.value = minDate.toISOString().split('T')[0];
+            dateInput.value = toIsoLocal(minDate);
+            lastValidDate = dateInput.value;
         }
 
-        // Verifier que la date est un jour ouvrable (lundi-vendredi)
-        function isWeekday(dateString) {
-            const date = new Date(dateString);
-            const day = date.getDay();
-            return day >= 1 && day <= 5; // 1=lundi, 5=vendredi
-        }
-
-        // Validation lors du changement de date
+        // Refuser toute date non-samedi sans correction silencieuse : on revert vers
+        // la dernière valeur valide et on affiche un message d'erreur persistant.
         dateInput.addEventListener('change', function() {
-            if (!isWeekday(this.value)) {
-                showStatus('La date de passage doit etre du lundi au vendredi.', 'error');
-                // Trouver le prochain jour ouvrable
-                const selected = new Date(this.value);
-                while (selected.getDay() === 0 || selected.getDay() === 6) {
-                    selected.setDate(selected.getDate() + 1);
-                }
-                this.value = selected.toISOString().split('T')[0];
+            if (!isSaturday(this.value)) {
+                showStatus('La date de passage doit être un samedi.', 'error');
+                this.value = lastValidDate;
             } else {
+                lastValidDate = this.value;
                 statusDiv.className = 'status';
             }
         });
@@ -357,16 +368,15 @@ Passions : lecture, voyages, cuisine italienne
             }
 
             if (!datePassage) {
-                showStatus('Veuillez selectionner une date de passage antenne', 'error');
+                showStatus('Veuillez sélectionner une date de passage antenne', 'error');
                 return;
             }
 
-            if (!isWeekday(datePassage)) {
-                showStatus('La date de passage doit etre du lundi au vendredi.', 'error');
+            if (!isSaturday(datePassage)) {
+                showStatus('La date de passage doit être un samedi.', 'error');
                 return;
             }
 
-            // Mode loading
             submitBtn.classList.add('loading');
             submitBtn.disabled = true;
             showStatus('Envoi en cours... Cela peut prendre 1-2 minutes.', 'processing');
@@ -374,9 +384,7 @@ Passions : lecture, voyages, cuisine italienne
             try {
                 const response = await fetch(WEBHOOK_URL, {
                     method: 'POST',
-                    headers: {
-                        'Content-Type': 'application/json',
-                    },
+                    headers: { 'Content-Type': 'application/json' },
                     body: JSON.stringify({
                         'Collez les reponses': infos,
                         'Date passage antenne': datePassage
@@ -384,14 +392,14 @@ Passions : lecture, voyages, cuisine italienne
                 });
 
                 if (response.ok) {
-                    showStatus('Playlist generee avec succes ! Verifiez votre email.', 'success');
+                    showStatus('Playlist générée avec succès ! Vérifiez votre email.', 'success');
                     form.reset();
-                    initDatePicker(); // Reinitialiser la date
+                    initDatePicker();
                 } else {
                     throw new Error('Erreur serveur');
                 }
             } catch (error) {
-                showStatus('Erreur lors de la generation. Reessayez.', 'error');
+                showStatus('Erreur lors de la génération. Réessayez.', 'error');
                 console.error(error);
             } finally {
                 submitBtn.classList.remove('loading');
@@ -404,7 +412,6 @@ Passions : lecture, voyages, cuisine italienne
             statusDiv.className = 'status ' + type;
         }
 
-        // Initialiser au chargement
         initDatePicker();
     </script>
 </body>
