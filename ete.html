@@ -3,481 +3,60 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>🌞🎵 Générateur de Playlist Été - Radio Nostalgie</title>
+    <title>🌞🎵 Générateur de Playlist Été — a déménagé</title>
+    <link rel="canonical" href="https://laurent7850.github.io/playlist-generator-ete/">
+    <meta http-equiv="refresh" content="0; url=https://laurent7850.github.io/playlist-generator-ete/">
     <style>
-        * {
-            margin: 0;
-            padding: 0;
-            box-sizing: border-box;
-        }
-
         body {
             font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
-            background: linear-gradient(135deg, #1a1a2e 0%, #16213e 50%, #0f3460 100%);
+            background: linear-gradient(135deg, #1a1a2e 0%, #16213e 100%);
+            color: #fff;
             min-height: 100vh;
             display: flex;
-            justify-content: center;
             align-items: center;
+            justify-content: center;
             padding: 20px;
-        }
-
-        .container {
-            background: rgba(255, 255, 255, 0.95);
-            border-radius: 20px;
-            box-shadow: 0 20px 60px rgba(0, 0, 0, 0.3);
-            padding: 40px;
-            max-width: 800px;
-            width: 100%;
-        }
-
-        .header {
             text-align: center;
-            margin-bottom: 30px;
         }
 
-        .logo {
-            font-size: 60px;
-            margin-bottom: 10px;
+        .card {
+            background: rgba(255, 255, 255, 0.06);
+            border: 1px solid rgba(255, 255, 255, 0.12);
+            border-radius: 16px;
+            padding: 40px;
+            max-width: 520px;
         }
 
         h1 {
-            color: #1a1a2e;
-            font-size: 28px;
-            margin-bottom: 10px;
+            font-size: 22px;
+            margin-bottom: 16px;
         }
 
-        .subtitle {
-            color: #666;
-            font-size: 16px;
-        }
-
-        .form-group {
-            margin-bottom: 25px;
-        }
-
-        label {
-            display: block;
-            color: #1a1a2e;
-            font-weight: 600;
-            margin-bottom: 10px;
-            font-size: 16px;
-        }
-
-        textarea {
-            width: 100%;
-            height: 350px;
-            padding: 20px;
-            border: 2px solid #e0e0e0;
-            border-radius: 12px;
-            font-size: 14px;
-            font-family: 'Consolas', 'Monaco', monospace;
-            resize: vertical;
-            transition: border-color 0.3s, box-shadow 0.3s;
-            line-height: 1.5;
-        }
-
-        textarea:focus {
-            outline: none;
-            border-color: #e94560;
-            box-shadow: 0 0 0 4px rgba(233, 69, 96, 0.1);
-        }
-
-        textarea::placeholder {
-            color: #aaa;
-        }
-
-        .btn-submit {
-            width: 100%;
-            padding: 18px 40px;
-            background: linear-gradient(135deg, #e94560 0%, #0f3460 100%);
-            color: white;
-            border: none;
-            border-radius: 12px;
-            font-size: 20px;
-            font-weight: 700;
-            cursor: pointer;
-            transition: transform 0.2s, box-shadow 0.2s;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            gap: 10px;
-        }
-
-        .btn-submit:hover {
-            transform: translateY(-2px);
-            box-shadow: 0 10px 30px rgba(233, 69, 96, 0.4);
-        }
-
-        .btn-submit:active {
-            transform: translateY(0);
-        }
-
-        .btn-submit:disabled {
-            background: #ccc;
-            cursor: not-allowed;
-            transform: none;
-            box-shadow: none;
-        }
-
-        .spinner {
-            display: none;
-            width: 24px;
-            height: 24px;
-            border: 3px solid rgba(255, 255, 255, 0.3);
-            border-top-color: white;
-            border-radius: 50%;
-            animation: spin 1s linear infinite;
-        }
-
-        @keyframes spin {
-            to { transform: rotate(360deg); }
-        }
-
-        .loading .spinner {
-            display: block;
-        }
-
-        .loading .btn-text {
-            display: none;
-        }
-
-        .status {
-            margin-top: 20px;
-            padding: 15px 20px;
-            border-radius: 10px;
-            text-align: center;
-            font-weight: 500;
-            display: none;
-        }
-
-        .status.success {
-            display: block;
-            background: #d4edda;
-            color: #155724;
-            border: 1px solid #c3e6cb;
-        }
-
-        .status.error {
-            display: block;
-            background: #f8d7da;
-            color: #721c24;
-            border: 1px solid #f5c6cb;
-        }
-
-        .status.processing {
-            display: block;
-            background: #fff3cd;
-            color: #856404;
-            border: 1px solid #ffeeba;
-        }
-
-        .status.closed {
-            display: block;
-            background: #fff8e1;
-            color: #7a5c00;
-            border: 1px solid #ffe08a;
-        }
-
-        .season-closed {
-            background: linear-gradient(135deg, #fff3cd 0%, #ffe8a1 100%);
-            border-left: 4px solid #f0a500;
-            padding: 18px 22px;
-            margin-bottom: 25px;
-            border-radius: 0 8px 8px 0;
-        }
-
-        .season-closed p {
-            color: #6b4e00;
-            font-size: 15px;
+        p {
             line-height: 1.6;
+            color: #d7d7e0;
+            margin-bottom: 14px;
         }
 
-        .season-closed p + p {
-            margin-top: 10px;
-        }
-
-        .season-closed a {
-            color: #b45309;
+        a {
+            color: #ffd166;
             font-weight: 600;
-        }
-
-        .info-box {
-            background: #f8f9fa;
-            border-left: 4px solid #e94560;
-            padding: 15px 20px;
-            margin-bottom: 25px;
-            border-radius: 0 8px 8px 0;
-        }
-
-        .info-box p {
-            color: #555;
-            font-size: 14px;
-            line-height: 1.6;
-        }
-
-        .date-picker-group {
-            margin-bottom: 25px;
-        }
-
-        .date-input-wrapper {
-            position: relative;
-        }
-
-        .date-input {
-            width: 100%;
-            padding: 15px 20px;
-            border: 2px solid #e0e0e0;
-            border-radius: 12px;
-            font-size: 16px;
-            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
-            transition: border-color 0.3s, box-shadow 0.3s;
-            cursor: pointer;
-        }
-
-        .date-input:focus {
-            outline: none;
-            border-color: #e94560;
-            box-shadow: 0 0 0 4px rgba(233, 69, 96, 0.1);
-        }
-
-        .date-hint {
-            margin-top: 8px;
-            font-size: 13px;
-            color: #888;
-        }
-
-        .date-hint span {
-            color: #e94560;
-            font-weight: 600;
-        }
-
-        .footer {
-            text-align: center;
-            margin-top: 30px;
-            color: #888;
-            font-size: 13px;
         }
     </style>
 </head>
 <body>
-    <div class="container">
-        <div class="header">
-            <div class="logo">🌞🎵</div>
-            <h1>Générateur de Playlist Été</h1>
-            <p class="subtitle">Radio Nostalgie Belgique</p>
-        </div>
-
-        <div class="season-closed" id="seasonClosed" hidden>
-            <p>🌴 <strong>L’été a plié bagage.</strong> Le générateur est parti bronzer quelque part entre deux transats, sa crème solaire sous le bras.</p>
-            <p>Rendez-vous en juin prochain pour une nouvelle tournée de tubes ensoleillés. D’ici là, <a href="index.html">le générateur classique</a> tourne toute l’année, lui — il n’a jamais pris de vacances. ☕</p>
-        </div>
-
-        <div class="info-box" id="infoBox">
-            <p>📋 Collez ci-dessous <strong>toutes les informations de l'auditeur</strong> (questionnaire, préférences musicales, histoire personnelle, etc.). Le système analysera automatiquement les données pour générer une playlist unique de 25 titres aux couleurs de l'été ☀️.</p>
-        </div>
-
-        <form id="playlistForm">
-            <div class="form-group date-picker-group">
-                <label for="datePassage">Date de passage antenne</label>
-                <div class="date-input-wrapper">
-                    <input
-                        type="date"
-                        id="datePassage"
-                        name="Date passage antenne"
-                        class="date-input"
-                        required
-                    >
-                </div>
-                <p class="date-hint">Uniquement le <span>samedi</span></p>
-            </div>
-
-            <div class="form-group">
-                <label for="infos">Informations de l'auditeur</label>
-                <textarea
-                    id="infos"
-                    name="Informations auditeur"
-                    placeholder="Collez ici toutes les informations de l'auditeur...
-
-Exemple :
-Nom : Marie Dupont
-Localité : 1000 Bruxelles, Belgique
-Date de naissance : 15 mars 1975
-Téléphone : 0470123456
-Email : marie@example.com
-
-Artistes préférés : Queen, ABBA, Jean-Jacques Goldman
-Premier souvenir musical : Dancing Queen de ABBA
-Groupe de l'adolescence : Nirvana
-Passions : lecture, voyages, cuisine italienne
-..."
-                    required
-                ></textarea>
-            </div>
-
-            <button type="submit" class="btn-submit" id="submitBtn">
-                <span class="btn-text">🚀 Générer la Playlist</span>
-                <div class="spinner"></div>
-            </button>
-        </form>
-
-        <div class="status" id="status"></div>
-
-        <div class="footer">
-            <p>💝 Créé avec amour pour Radio Nostalgie — Édition Été ☀️</p>
-        </div>
+    <div class="card">
+        <h1>🌴 L'édition Été a déménagé</h1>
+        <p>Le générateur de playlist Été a désormais son propre site, séparé du générateur classique.</p>
+        <p>Redirection automatique en cours. Si rien ne se passe :<br>
+            <a href="https://laurent7850.github.io/playlist-generator-ete/">https://laurent7850.github.io/playlist-generator-ete/</a>
+        </p>
+        <p>Vous cherchiez le générateur utilisé toute l'année ?<br>
+            <a href="https://laurent7850.github.io/playlist-generator/">C'est par ici.</a>
+        </p>
     </div>
-
     <script>
-        // ============================================================
-        // ÉDITION ÉTÉ — passages antenne uniquement le samedi.
-        // Pour rebasculer en septembre sur la logique jour-ouvrable
-        // (lundi-vendredi), voir l'historique git du repo.
-        // ============================================================
-
-        const WEBHOOK_URL = 'https://n8n.srv767464.hstgr.cloud/webhook/playlist-generator-ete';
-
-        // Le workflow n8n ÉTÉ n'est actif que pendant la saison : hors saison il est
-        // désactivé (il consomme du LLM et alimente la blacklist partagée avec le
-        // générateur classique). Repasser à true en même temps que le workflow.
-        const SEASON_OPEN = false;
-        const CLOSED_MESSAGE = "🌴 Trop tard, l’été est parti sans laisser d’adresse. On remet les tubes ensoleillés à l’affiche en juin prochain !";
-
-        const form = document.getElementById('playlistForm');
-        const submitBtn = document.getElementById('submitBtn');
-        const statusDiv = document.getElementById('status');
-        const dateInput = document.getElementById('datePassage');
-        const infoBox = document.getElementById('infoBox');
-        const seasonClosedBox = document.getElementById('seasonClosed');
-
-        // Hors saison : annoncer la fermeture plutôt que laisser remplir un formulaire
-        // qui ne peut que tomber sur un webhook éteint.
-        function applySeasonState() {
-            if (SEASON_OPEN) return;
-
-            infoBox.hidden = true;
-            seasonClosedBox.hidden = false;
-            submitBtn.disabled = true;
-            submitBtn.querySelector('.btn-text').textContent = "🌴 De retour l’été prochain";
-            dateInput.disabled = true;
-            document.getElementById('infos').disabled = true;
-        }
-
-        // Parse ISO YYYY-MM-DD en date LOCALE (évite le décalage UTC de new Date("2026-07-04")).
-        function parseLocalDate(s) {
-            const [y, m, d] = s.split('-').map(Number);
-            return new Date(y, m - 1, d);
-        }
-
-        function toIsoLocal(d) {
-            const y = d.getFullYear();
-            const m = String(d.getMonth() + 1).padStart(2, '0');
-            const day = String(d.getDate()).padStart(2, '0');
-            return y + '-' + m + '-' + day;
-        }
-
-        function nextSaturday(from) {
-            const d = new Date(from.getFullYear(), from.getMonth(), from.getDate());
-            const offset = (6 - d.getDay() + 7) % 7;
-            d.setDate(d.getDate() + offset);
-            return d;
-        }
-
-        function isSaturday(dateString) {
-            return parseLocalDate(dateString).getDay() === 6;
-        }
-
-        let lastValidDate = '';
-
-        function initDatePicker() {
-            const today = new Date();
-            const minDate = nextSaturday(today);
-            dateInput.min = toIsoLocal(minDate);
-
-            const maxDate = new Date(today.getFullYear(), today.getMonth() + 3, today.getDate());
-            dateInput.max = toIsoLocal(maxDate);
-
-            dateInput.value = toIsoLocal(minDate);
-            lastValidDate = dateInput.value;
-        }
-
-        // Refuser toute date non-samedi sans correction silencieuse : on revert vers
-        // la dernière valeur valide et on affiche un message d'erreur persistant.
-        dateInput.addEventListener('change', function() {
-            if (!isSaturday(this.value)) {
-                showStatus('La date de passage doit être un samedi.', 'error');
-                this.value = lastValidDate;
-            } else {
-                lastValidDate = this.value;
-                statusDiv.className = 'status';
-            }
-        });
-
-        form.addEventListener('submit', async (e) => {
-            e.preventDefault();
-
-            if (!SEASON_OPEN) {
-                showStatus(CLOSED_MESSAGE, 'closed');
-                return;
-            }
-
-            const infos = document.getElementById('infos').value.trim();
-            const datePassage = dateInput.value;
-
-            if (!infos) {
-                showStatus('Veuillez coller les informations de l\'auditeur', 'error');
-                return;
-            }
-
-            if (!datePassage) {
-                showStatus('Veuillez sélectionner une date de passage antenne', 'error');
-                return;
-            }
-
-            if (!isSaturday(datePassage)) {
-                showStatus('La date de passage doit être un samedi.', 'error');
-                return;
-            }
-
-            submitBtn.classList.add('loading');
-            submitBtn.disabled = true;
-            showStatus('Envoi en cours... Cela peut prendre 1-2 minutes.', 'processing');
-
-            try {
-                const response = await fetch(WEBHOOK_URL, {
-                    method: 'POST',
-                    headers: { 'Content-Type': 'application/json' },
-                    body: JSON.stringify({
-                        'Collez les reponses': infos,
-                        'Date passage antenne': datePassage
-                    })
-                });
-
-                if (response.ok) {
-                    showStatus('Playlist générée avec succès ! Vérifiez votre email.', 'success');
-                    form.reset();
-                    initDatePicker();
-                } else if (response.status === 404) {
-                    // Webhook non enregistré = workflow n8n éteint, donc saison terminée
-                    showStatus(CLOSED_MESSAGE, 'closed');
-                } else {
-                    throw new Error('Erreur serveur ' + response.status);
-                }
-            } catch (error) {
-                showStatus('Erreur lors de la génération. Réessayez.', 'error');
-                console.error(error);
-            } finally {
-                submitBtn.classList.remove('loading');
-                submitBtn.disabled = false;
-            }
-        });
-
-        function showStatus(message, type) {
-            statusDiv.textContent = message;
-            statusDiv.className = 'status ' + type;
-        }
-
-        initDatePicker();
-        applySeasonState();
+        location.replace('https://laurent7850.github.io/playlist-generator-ete/');
     </script>
 </body>
 </html>
