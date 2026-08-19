@@ -253,7 +253,7 @@
                         required
                     >
                 </div>
-                <p class="date-hint">Uniquement le <span>samedi</span></p>
+                <p class="date-hint">Uniquement du <span>lundi au vendredi</span></p>
             </div>
 
             <div class="form-group">
@@ -294,9 +294,9 @@ Passions : lecture, voyages, cuisine italienne
 
     <script>
         // ============================================================
-        // ÉDITION ÉTÉ — passages antenne uniquement le samedi.
-        // Pour rebasculer en septembre sur la logique jour-ouvrable
-        // (lundi-vendredi), voir l'historique git du repo.
+        // GÉNÉRATEUR CLASSIQUE — passages antenne du lundi au vendredi,
+        // toute l'année. La règle « samedi uniquement » appartient à
+        // l'édition Été (ete.html) et ne s'applique pas ici.
         // ============================================================
 
         const WEBHOOK_URL = 'https://n8n.srv767464.hstgr.cloud/webhook/playlist-generator';
@@ -319,22 +319,25 @@ Passions : lecture, voyages, cuisine italienne
             return y + '-' + m + '-' + day;
         }
 
-        function nextSaturday(from) {
+        // Prochain jour ouvrable : samedi et dimanche basculent sur le lundi suivant.
+        function nextWeekday(from) {
             const d = new Date(from.getFullYear(), from.getMonth(), from.getDate());
-            const offset = (6 - d.getDay() + 7) % 7;
-            d.setDate(d.getDate() + offset);
+            while (d.getDay() === 0 || d.getDay() === 6) {
+                d.setDate(d.getDate() + 1);
+            }
             return d;
         }
 
-        function isSaturday(dateString) {
-            return parseLocalDate(dateString).getDay() === 6;
+        function isWeekday(dateString) {
+            const day = parseLocalDate(dateString).getDay();
+            return day >= 1 && day <= 5; // 1 = lundi, 5 = vendredi
         }
 
         let lastValidDate = '';
 
         function initDatePicker() {
             const today = new Date();
-            const minDate = nextSaturday(today);
+            const minDate = nextWeekday(today);
             dateInput.min = toIsoLocal(minDate);
 
             const maxDate = new Date(today.getFullYear(), today.getMonth() + 3, today.getDate());
@@ -344,11 +347,11 @@ Passions : lecture, voyages, cuisine italienne
             lastValidDate = dateInput.value;
         }
 
-        // Refuser toute date non-samedi sans correction silencieuse : on revert vers
-        // la dernière valeur valide et on affiche un message d'erreur persistant.
+        // Refuser tout week-end sans correction silencieuse : on revert vers la
+        // dernière valeur valide et on affiche un message d'erreur persistant.
         dateInput.addEventListener('change', function() {
-            if (!isSaturday(this.value)) {
-                showStatus('La date de passage doit être un samedi.', 'error');
+            if (!isWeekday(this.value)) {
+                showStatus('La date de passage doit être du lundi au vendredi.', 'error');
                 this.value = lastValidDate;
             } else {
                 lastValidDate = this.value;
@@ -372,8 +375,8 @@ Passions : lecture, voyages, cuisine italienne
                 return;
             }
 
-            if (!isSaturday(datePassage)) {
-                showStatus('La date de passage doit être un samedi.', 'error');
+            if (!isWeekday(datePassage)) {
+                showStatus('La date de passage doit être du lundi au vendredi.', 'error');
                 return;
             }
 
