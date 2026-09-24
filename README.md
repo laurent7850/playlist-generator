@@ -41,3 +41,34 @@ Le parsing ISO est fait en heure locale pour éviter la dérive UTC.
 Catalogue et feuille `Blacklist` (exclusion 21 jours) sur Google Sheets, côté n8n. Ils
 restent partagés avec l'édition Été : un titre sorti d'un côté est écarté de l'autre
 pendant 21 jours. C'est le seul lien restant entre les deux projets, et il est volontaire.
+
+## Mémoire des auditeurs (depuis le 2026-09-24)
+
+Un auditeur déjà passé à l'antenne dans les **12 derniers mois** n'est pas repris sans
+confirmation. Le workflow n8n (nœuds `1b` à `1g`) vérifie l'auditeur **avant** tout appel
+au LLM :
+
+- **même téléphone** → refus certain (bandeau rouge) ;
+- **même nom** sans téléphone pour trancher → « à vérifier » (bandeau orange), avec la
+  liste de tous les passages au même nom (date, nom, localité) ;
+- dans les deux cas, la page propose **Générer quand même** (renvoi avec `force: true`).
+
+Le workflow répond alors en **HTTP 409** avec `{ alreadyAired, certain, occurrences[] }`.
+Une régénération pour la même date de passage n'est pas considérée comme un doublon.
+
+Stockage : onglet `Auditeurs` du même Google Sheet — `Date passage`, `Nom`, `Localite`,
+`Empreinte tel`, `Source`, `Enregistre le`.
+
+- Le téléphone n'est **jamais stocké en clair** : empreinte HMAC-SHA256 dont la clé
+  `LISTENER_HMAC_KEY` vit dans `/root/.env` sur le VPS (lue par le nœud `1c` via `$env`).
+  Perdre ou changer cette clé rend les empreintes existantes inutilisables.
+- Numéros normalisés au format `+32…` avant hachage (`0470…`, `+32 470…`, `0032470…`
+  donnent la même empreinte).
+- Purge automatique le 1er de chaque mois (nœuds `P0` à `P3`) : lignes de plus de 12 mois
+  supprimées.
+- Historique importé : passages des 12 derniers mois repris de l'onglet `Blacklist`
+  (nom seul, source `historique-blacklist`) et des exécutions n8n encore conservées
+  (téléphone + localité, source `historique-execution`).
+
+Ce traitement doit figurer au registre RGPD (finalité : éviter de reprogrammer un même
+auditeur ; conservation : 12 mois).

@@ -25,3 +25,7 @@ dates valides (corrigé le 2026-08-19). C'est cette confusion que la scission su
 - `ete.html` n'est qu'une redirection vers le projet Été. Ne rien y ajouter d'autre.
 - **URL du webhook** : elle vit dans la page (site public). Aucun autre secret ici —
   credentials et clés restent côté n8n.
+- **Mémoire des auditeurs** : un HTTP **409** du webhook n'est pas une erreur, c'est
+  « déjà passé à l'antenne » (voir README). Ne jamais stocker un téléphone en clair dans
+  l'onglet `Auditeurs` : toujours l'empreinte HMAC du nœud `1c`. Toute modification du
+  format de normalisation (`1b`) invalide la comparaison avec les empreintes existantes.

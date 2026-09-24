@@ -221,6 +221,76 @@
             font-weight: 600;
         }
 
+        .already-aired {
+            display: none;
+            margin-top: 20px;
+            padding: 18px 20px;
+            border-radius: 10px;
+            background: #fff3cd;
+            color: #856404;
+            border: 1px solid #ffeeba;
+        }
+
+        .already-aired.visible {
+            display: block;
+        }
+
+        .already-aired.certain {
+            background: #f8d7da;
+            color: #721c24;
+            border-color: #f5c6cb;
+        }
+
+        .already-aired h2 {
+            font-size: 17px;
+            margin-bottom: 8px;
+        }
+
+        .already-aired p {
+            font-size: 14px;
+            line-height: 1.5;
+        }
+
+        .already-aired table {
+            width: 100%;
+            margin: 12px 0 16px;
+            border-collapse: collapse;
+            font-size: 14px;
+            background: rgba(255, 255, 255, 0.6);
+        }
+
+        .already-aired th,
+        .already-aired td {
+            text-align: left;
+            padding: 6px 10px;
+            border-bottom: 1px solid rgba(0, 0, 0, 0.08);
+        }
+
+        .already-aired .actions {
+            display: flex;
+            gap: 10px;
+            flex-wrap: wrap;
+        }
+
+        .already-aired button {
+            padding: 10px 18px;
+            border-radius: 8px;
+            border: none;
+            font-size: 15px;
+            font-weight: 600;
+            cursor: pointer;
+        }
+
+        .btn-force {
+            background: #e94560;
+            color: white;
+        }
+
+        .btn-cancel {
+            background: #e0e0e0;
+            color: #1a1a2e;
+        }
+
         .footer {
             text-align: center;
             margin-top: 30px;
@@ -286,6 +356,21 @@ Passions : lecture, voyages, cuisine italienne
         </form>
 
         <div class="status" id="status"></div>
+
+        <div class="already-aired" id="alreadyAired" role="alert">
+            <h2 id="alreadyAiredTitle"></h2>
+            <p id="alreadyAiredText"></p>
+            <table>
+                <thead>
+                    <tr><th>Passage</th><th>Nom</th><th>Localité</th><th>Correspondance</th></tr>
+                </thead>
+                <tbody id="alreadyAiredRows"></tbody>
+            </table>
+            <div class="actions">
+                <button type="button" class="btn-force" id="forceBtn">Générer quand même</button>
+                <button type="button" class="btn-cancel" id="cancelBtn">Annuler</button>
+            </div>
+        </div>
 
         <div class="footer">
             <p>💝 Créé avec amour pour Radio Nostalgie</p>
@@ -380,19 +465,38 @@ Passions : lecture, voyages, cuisine italienne
                 return;
             }
 
+            await sendGeneration(infos, datePassage, false);
+        });
+
+        // Le workflow refuse (HTTP 409) un auditeur déjà passé à l'antenne dans les
+        // 12 derniers mois. L'animateur voit les passages trouvés et peut forcer.
+        async function sendGeneration(infos, datePassage, force) {
+            hideAlreadyAired();
             submitBtn.classList.add('loading');
             submitBtn.disabled = true;
             showStatus('Envoi en cours... Cela peut prendre 1-2 minutes.', 'processing');
 
             try {
+                const payload = {
+                    'Collez les reponses': infos,
+                    'Date passage antenne': datePassage
+                };
+                if (force) payload.force = true;
+
                 const response = await fetch(WEBHOOK_URL, {
                     method: 'POST',
                     headers: { 'Content-Type': 'application/json' },
-                    body: JSON.stringify({
-                        'Collez les reponses': infos,
-                        'Date passage antenne': datePassage
-                    })
+                    body: JSON.stringify(payload)
                 });
+
+                if (response.status === 409) {
+                    const data = await response.json().catch(() => null);
+                    if (data && data.alreadyAired) {
+                        statusDiv.className = 'status';
+                        showAlreadyAired(data, infos, datePassage);
+                        return;
+                    }
+                }
 
                 if (response.ok) {
                     showStatus('Playlist générée avec succès ! Vérifiez votre email.', 'success');
@@ -408,7 +512,58 @@ Passions : lecture, voyages, cuisine italienne
                 submitBtn.classList.remove('loading');
                 submitBtn.disabled = false;
             }
+        }
+
+        const alreadyAiredDiv = document.getElementById('alreadyAired');
+        const alreadyAiredRows = document.getElementById('alreadyAiredRows');
+        let pendingRequest = null;
+
+        function formatDate(iso) {
+            const [y, m, d] = String(iso).split('-');
+            return d && m && y ? d + '/' + m + '/' + y : String(iso);
+        }
+
+        function showAlreadyAired(data, infos, datePassage) {
+            const certain = data.certain === true;
+            const occurrences = Array.isArray(data.occurrences) ? data.occurrences : [];
+
+            document.getElementById('alreadyAiredTitle').textContent = certain
+                ? '⛔ Cet auditeur est déjà passé à l\'antenne'
+                : '⚠️ À vérifier : un auditeur du même nom est déjà passé';
+            document.getElementById('alreadyAiredText').textContent = certain
+                ? 'Son numéro de téléphone figure dans les passages des 12 derniers mois.'
+                : 'Aucun numéro ne permet de trancher. Voici les passages des 12 derniers mois au même nom : est-ce la même personne ?';
+
+            // textContent uniquement : les noms viennent du Google Sheet, jamais injectés en HTML.
+            alreadyAiredRows.replaceChildren();
+            for (const o of occurrences) {
+                const tr = document.createElement('tr');
+                const motif = o.motif === 'telephone' ? 'Même téléphone' : 'Même nom';
+                for (const value of [formatDate(o.date), o.nom || '—', o.localite || '—', motif]) {
+                    const td = document.createElement('td');
+                    td.textContent = value;
+                    tr.appendChild(td);
+                }
+                alreadyAiredRows.appendChild(tr);
+            }
+
+            alreadyAiredDiv.classList.toggle('certain', certain);
+            alreadyAiredDiv.classList.add('visible');
+            pendingRequest = { infos, datePassage };
+        }
+
+        function hideAlreadyAired() {
+            alreadyAiredDiv.classList.remove('visible');
+            pendingRequest = null;
+        }
+
+        document.getElementById('forceBtn').addEventListener('click', () => {
+            if (!pendingRequest) return;
+            const { infos, datePassage } = pendingRequest;
+            sendGeneration(infos, datePassage, true);
         });
+
+        document.getElementById('cancelBtn').addEventListener('click', hideAlreadyAired);
 
         function showStatus(message, type) {
             statusDiv.textContent = message;
