@@ -48,12 +48,13 @@ Un auditeur déjà passé à l'antenne dans les **12 derniers mois** n'est pas r
 confirmation. Le workflow n8n (nœuds `1b` à `1g`) vérifie l'auditeur **avant** tout appel
 au LLM :
 
-- **même téléphone** → refus certain (bandeau rouge) ;
-- **même nom** sans téléphone pour trancher → « à vérifier » (bandeau orange), avec la
-  liste de tous les passages au même nom (date, nom, localité) ;
-- dans les deux cas, la page propose **Générer quand même** (renvoi avec `force: true`).
-
-Le workflow répond alors en **HTTP 409** avec `{ alreadyAired, certain, occurrences[] }`.
+- **même téléphone** → seul cas bloquant : le workflow répond **HTTP 409** avec
+  `{ alreadyAired, certain, occurrences[] }`, la page affiche les passages (bandeau rouge)
+  et propose **Générer quand même** (renvoi avec `force: true`) ;
+- **même prénom seulement** → ne bloque pas (depuis le 2026-10-01) : la playlist est
+  générée et la réponse 200 porte `possibleRepeat` + `possibles[]` (prénom, date),
+  repris dans l'email. Motif : les 144 lignes importées de l'historique ne contiennent
+  qu'un prénom et bloquaient tous les homonymes pendant un an.
 Une régénération pour la même date de passage n'est pas considérée comme un doublon.
 
 Stockage : onglet `Auditeurs` du même Google Sheet — `Date passage`, `Nom`, `Localite`,
