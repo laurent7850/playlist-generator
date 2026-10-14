@@ -49,7 +49,8 @@ confirmation. Le workflow n8n (nœuds `1b` à `1g`) vérifie l'auditeur **avant*
 au LLM :
 
 - **même téléphone** → seul cas bloquant : le workflow répond **HTTP 409** avec
-  `{ alreadyAired, certain, occurrences[] }`, la page affiche les passages (bandeau rouge)
+  `{ alreadyAired, certain, occurrences[] }`, la page affiche les passages trouvés par téléphone (bandeau rouge ; les correspondances
+  de prénom renvoyées dans `occurrences` n'y figurent pas)
   et propose **Générer quand même** (renvoi avec `force: true`) ;
 - **même prénom seulement** → ne bloque pas (depuis le 2026-10-01) : la playlist est
   générée et la réponse 200 porte `possibleRepeat` + `possibles[]` (prénom, date),

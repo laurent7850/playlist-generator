@@ -362,7 +362,7 @@ Passions : lecture, voyages, cuisine italienne
             <p id="alreadyAiredText"></p>
             <table>
                 <thead>
-                    <tr><th>Passage</th><th>Nom</th><th>Localité</th><th>Correspondance</th></tr>
+                    <tr><th>Passage</th><th>Nom</th><th>Localité</th></tr>
                 </thead>
                 <tbody id="alreadyAiredRows"></tbody>
             </table>
@@ -524,22 +524,21 @@ Passions : lecture, voyages, cuisine italienne
         }
 
         function showAlreadyAired(data, infos, datePassage) {
-            const certain = data.certain === true;
-            const occurrences = Array.isArray(data.occurrences) ? data.occurrences : [];
+            // Only a phone match blocks (409). The workflow also returns first-name
+            // matches in `occurrences`; showing them here suggested they counted.
+            const occurrences = (Array.isArray(data.occurrences) ? data.occurrences : [])
+                .filter(o => o && o.motif === 'telephone');
 
-            document.getElementById('alreadyAiredTitle').textContent = certain
-                ? '⛔ Cet auditeur est déjà passé à l\'antenne'
-                : '⚠️ À vérifier : un auditeur du même nom est déjà passé';
-            document.getElementById('alreadyAiredText').textContent = certain
-                ? 'Son numéro de téléphone figure dans les passages des 12 derniers mois.'
-                : 'Aucun numéro ne permet de trancher. Voici les passages des 12 derniers mois au même nom : est-ce la même personne ?';
+            document.getElementById('alreadyAiredTitle').textContent =
+                '⛔ Cet auditeur est déjà passé à l\'antenne';
+            document.getElementById('alreadyAiredText').textContent =
+                'Son numéro de téléphone figure dans les passages des 12 derniers mois.';
 
             // textContent uniquement : les noms viennent du Google Sheet, jamais injectés en HTML.
             alreadyAiredRows.replaceChildren();
             for (const o of occurrences) {
                 const tr = document.createElement('tr');
-                const motif = o.motif === 'telephone' ? 'Même téléphone' : 'Même nom';
-                for (const value of [formatDate(o.date), o.nom || '—', o.localite || '—', motif]) {
+                for (const value of [formatDate(o.date), o.nom || '—', o.localite || '—']) {
                     const td = document.createElement('td');
                     td.textContent = value;
                     tr.appendChild(td);
@@ -547,7 +546,7 @@ Passions : lecture, voyages, cuisine italienne
                 alreadyAiredRows.appendChild(tr);
             }
 
-            alreadyAiredDiv.classList.toggle('certain', certain);
+            alreadyAiredDiv.classList.add('certain');
             alreadyAiredDiv.classList.add('visible');
             pendingRequest = { infos, datePassage };
         }
