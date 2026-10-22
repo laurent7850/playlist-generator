@@ -48,15 +48,16 @@ Un auditeur déjà passé à l'antenne dans les **12 derniers mois** n'est pas r
 confirmation. Le workflow n8n (nœuds `1b` à `1g`) vérifie l'auditeur **avant** tout appel
 au LLM :
 
-- **même téléphone** → seul cas bloquant : le workflow répond **HTTP 409** avec
-  `{ alreadyAired, certain, occurrences[] }`, la page affiche les passages trouvés par téléphone (bandeau rouge ; les correspondances
-  de prénom renvoyées dans `occurrences` n'y figurent pas)
-  et propose **Générer quand même** (renvoi avec `force: true`) ;
-- **même prénom seulement** → ne bloque pas (depuis le 2026-10-01) : la playlist est
-  générée et la réponse 200 porte `possibleRepeat` + `possibles[]` (prénom, date),
-  repris dans l'email. Motif : les 144 lignes importées de l'historique ne contiennent
-  qu'un prénom et bloquaient tous les homonymes pendant un an.
-Une régénération pour la même date de passage n'est pas considérée comme un doublon.
+- **même prénom ET même téléphone** → seul cas d'alerte (depuis le 2026-10-22) : le
+  workflow répond **HTTP 409** avec `{ alreadyAired, certain, occurrences[] }`, la page
+  affiche les passages (bandeau rouge) et propose **Générer quand même** (renvoi avec
+  `force: true`) ;
+- **prénom seul, ou téléphone seul avec un autre prénom** → aucune alerte : ni blocage,
+  ni avertissement dans l'email. `possibles[]` est toujours vide (`possibleRepeat: false`),
+  gardé pour ne pas casser les nœuds email et réponse. Motif : les 144 lignes importées
+  de l'historique ne contiennent qu'un prénom et signalaient tous les homonymes.
+Une régénération pour la même date de passage (même téléphone) n'est pas considérée comme
+un doublon.
 
 Stockage : onglet `Auditeurs` du même Google Sheet — `Date passage`, `Nom`, `Localite`,
 `Empreinte tel`, `Source`, `Enregistre le`.
