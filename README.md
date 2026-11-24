@@ -36,6 +36,13 @@ persistant et le champ revient à la dernière valeur valide — jamais de corre
 silencieuse (l'ancien comportement décalait la date choisie au lundi suivant sans le dire).
 Le parsing ISO est fait en heure locale pour éviter la dérive UTC.
 
+Texte collé : le workflow (fonction `parseAnswers`, copiée à l'identique dans les nœuds
+`1b` et `4`) lit les deux formats connus — l'ancien (`Participant:` puis la valeur à la
+ligne) et celui en vigueur depuis le 2026-11-24 (intitulés sans deux-points, lignes vides
+entre les blocs et entre chaque question et sa réponse). Si le format change encore et que
+l'email affiche « - » pour le participant, c'est cette fonction qu'il faut adapter : sans
+elle, les réponses aux questions n'arrivent plus non plus au modèle.
+
 ## Données
 
 Catalogue et feuille `Blacklist` (exclusion 21 jours) sur Google Sheets, côté n8n. Ils
